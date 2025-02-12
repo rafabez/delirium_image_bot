@@ -31,7 +31,7 @@ def call_pollinations_image_api(prompt: str) -> bytes:
         # URL-encode the prompt
         encoded_prompt = requests.utils.quote(prompt)
         params = {
-            "model": "turbo",
+            "model": "flux",
             "nologo": "true",
             "width": "1024",
             "height": "1024"
