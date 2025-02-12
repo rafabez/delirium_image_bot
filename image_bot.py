@@ -15,7 +15,9 @@ if not TELEGRAM_TOKEN:
 # Optional system prompt (not used by the image API)
 SYSTEM_PROMPT = "Generate an image based on the prompt provided."
 
-def call_pollinations_image_api(prompt: str) -> bytes:
+import random
+
+def call_pollinations_image_api(prompt: str, seed: int = None) -> bytes:
     """
     Calls the Pollinations.AI Image Generation API to generate an image based on the provided prompt.
     Uses the 'turbo' model and sets nologo=true.
@@ -36,7 +38,9 @@ def call_pollinations_image_api(prompt: str) -> bytes:
             "width": "1024",
             "height": "1024"
         }
-        # Compose the full URL and make the GET request
+        # Prepare the request, including a potential seed if supported (currently not by Pollinations.AI)
+        if seed is not None:
+            params["seed"] = str(seed)
         response = requests.get(f"{base_url}{encoded_prompt}", params=params)
         response.raise_for_status()
         return response.content
@@ -44,6 +48,7 @@ def call_pollinations_image_api(prompt: str) -> bytes:
         return None
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    random_seed = random.randint(0, 2**32 - 1)
     """
     Handles incoming messages by using the message text as an image prompt.
     Calls the Pollinations.AI API and sends back the generated image.
@@ -59,7 +64,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Generating the fucking image you requested, you lazy fuck...")
 
     loop = asyncio.get_running_loop()
-    image_bytes = await loop.run_in_executor(None, call_pollinations_image_api, user_prompt)
+    image_bytes = await loop.run_in_executor(None, call_pollinations_image_api, user_prompt, random_seed)
 
     if image_bytes is None:
         await update.message.reply_text("Failed to generate image. Please try again later.")
